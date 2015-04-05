@@ -19,18 +19,15 @@ public class SnmpManager {
 	private Address targetAddress;
 	private TransportMapping<UdpAddress> transport;
 	private Snmp snmp;
-	private OID targetOID;
 	private String rootOID;
 	public SnmpManager() throws IOException {
 		targetAddress=UdpAddress.parse("192.168.0.1/161");
 		transport=new DefaultUdpTransportMapping();
 		snmp = new Snmp(transport);
 		transport.listen();
-		
-		targetOID=new OID(new int[]{1,3,6,1,4,1,9,9,46,1,3,1,1,2});
 		rootOID=new String("1.3.6.1.4.1.9.9.46.1.3.1.1.2");
 	}
-	public void snmpWalk(String curr_oid) throws IOException{
+	public void snmpWalk(OID oid) throws IOException{
 		
 		
 		CommunityTarget target =new CommunityTarget();
@@ -41,7 +38,7 @@ public class SnmpManager {
 		target.setVersion(SnmpConstants.version2c);
 		
 		PDU request = new PDU();
-		request.add(new VariableBinding(targetOID));
+		request.add(new VariableBinding(oid));
 		request.setType(PDU.GETNEXT);
 		
 		ResponseEvent rspEvent=snmp.send(request, target);
@@ -53,11 +50,9 @@ public class SnmpManager {
 				String cur_str=cur_oid.toString();
 				if(cur_str.contains(rootOID)){
 			
-					System.out.println(rootOID+vb.getVariable().toString());
+					System.out.println(cur_str+":"+vb.getVariable().toString());
 					
-					snmpWalk(cur_str);
-				}else {
-					System.out.println("Not in rootoid.");
+					snmpWalk(cur_oid);
 				}
 			}else {
 				System.out.println(response.getErrorStatusText());
