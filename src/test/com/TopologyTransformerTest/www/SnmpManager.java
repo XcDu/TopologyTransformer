@@ -30,7 +30,7 @@ public class SnmpManager {
 		targetOID=new OID(new int[]{1,3,6,1,4,1,9,9,46,1,3,1,1,2});
 		rootOID=new String("1.3.6.1.4.1.9.9.46.1.3.1.1.2");
 	}
-	public void snmpWalk() throws IOException{
+	public void snmpWalk(String curr_oid) throws IOException{
 		
 		
 		CommunityTarget target =new CommunityTarget();
@@ -45,7 +45,6 @@ public class SnmpManager {
 		request.setType(PDU.GETNEXT);
 		
 		ResponseEvent rspEvent=snmp.send(request, target);
-		
 		if(rspEvent!=null&&rspEvent.getResponse()!=null){
 			PDU response=rspEvent.getResponse();
 			if(response.getErrorIndex()==PDU.noError&&response.getErrorStatus()==PDU.noError){				
@@ -53,11 +52,10 @@ public class SnmpManager {
 				OID cur_oid=vb.getOid();
 				String cur_str=cur_oid.toString();
 				if(cur_str.contains(rootOID)){
-					String key=vb.getOid().toString();
+			
+					System.out.println(rootOID+vb.getVariable().toString());
 					
-					System.out.println(key.replace(rootOID, "")+vb.getVariable().toString());
-					
-					snmpWalk();
+					snmpWalk(cur_str);
 				}else {
 					System.out.println("Not in rootoid.");
 				}
