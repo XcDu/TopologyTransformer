@@ -27,31 +27,31 @@ public class SnmpOperations {
 	private Snmp snmp;
 	
 	public SnmpOperations() throws Exception{
-		TargetInit();
-		SnmpInit();
+		targetInit();
+		snmpInit();
 	}
 	
-	private void TargetInit(){
+	private void targetInit(){
 		target=new CommunityTarget();
 		target.setAddress(targetAddress);
 		target.setRetries(retries);
 		target.setTimeout(timeout);
 		target.setVersion(snmpVersion);
 	}
-	private void SnmpInit() throws Exception{
+	private void snmpInit() throws Exception{
 		transport=new DefaultUdpTransportMapping();
 		snmp=new Snmp();
 		snmp.addTransportMapping(transport);//untested.
 		snmp.listen();//untested.
 	}
 	
-//	public void SnmpGet(){
+//	public void snmpGet(){
 //		
 //	}
 
 	
 //	untested.
-	public void SnmpWalk(OID targetOid) throws Exception{
+	public void snmpWalk(OID targetOid) throws Exception{
 		
 		String currentOid=targetOid.toString();
 		String rootOid=currentOid;
@@ -82,7 +82,7 @@ public class SnmpOperations {
 			
 	}
 	
-	public boolean SnmpSet(OID targetOid,Variable value) throws Exception{
+	public boolean snmpSet(OID targetOid,Variable value) throws Exception{
 		target.setCommunity(new OctetString(rwcommunity));
 		
 		PDU request=new PDU();
