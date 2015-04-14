@@ -49,14 +49,17 @@ public class TopologyTransformerTest{
 		}
 	public static void main(String[] args) throws IOException {
 		// TODO Auto-generated method stub
-			TopologyTransformerTest ttt=new TopologyTransformerTest();
+			//TopologyTransformerTest ttt=new TopologyTransformerTest();
 			//ttt.addvlan(30);
 //			ttt.downport(13);
-			ttt.upport(13);
+			//ttt.upport(13);
 //			ttt.delvlan(15);
 			//ttt.addport(13, 30);
 			//ttt.addport(14, 30);
 //			ttt.delvlan(30);
+			SnmpManager snmpManager=new SnmpManager();
+			Mibs mibs=new Mibs();
+			snmpManager.snmpWalk(mibs.vtpVlanState);
 	}
 
 }

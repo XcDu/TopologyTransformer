@@ -1,5 +1,7 @@
 package com.TopologyTransformer.www;
 
+import java.util.Map;
+
 import org.snmp4j.CommunityTarget;
 import org.snmp4j.PDU;
 import org.snmp4j.TransportMapping;
@@ -17,11 +19,12 @@ import org.snmp4j.transport.DefaultUdpTransportMapping;
 public class SnmpOperations {
 	private final String rocommunity="public";
 	private final String rwcommunity="private";
-	private final Address targetAddress=new UdpAddress("192.168.0.1/161");
-	private final int retries=2;
-	private final int timeout=1500;
+	private final String address="192.168.0.1/161";
+	private final int retries=1;
+	private final int timeout=1000;
 	private final int snmpVersion=SnmpConstants.version2c;
 	
+	private Address targetAddress;
 	private CommunityTarget target;
 	private TransportMapping<UdpAddress> transport;
 	private Snmp snmp;
@@ -32,6 +35,7 @@ public class SnmpOperations {
 	}
 	
 	private void targetInit(){
+		targetAddress=new UdpAddress(address);
 		target=new CommunityTarget();
 		target.setAddress(targetAddress);
 		target.setRetries(retries);
@@ -40,9 +44,8 @@ public class SnmpOperations {
 	}
 	private void snmpInit() throws Exception{
 		transport=new DefaultUdpTransportMapping();
-		snmp=new Snmp();
-		snmp.addTransportMapping(transport);//untested.
-		snmp.listen();//untested.
+		snmp=new Snmp(transport);
+		transport.listen();
 	}
 	
 //	public void snmpGet(){
@@ -50,39 +53,39 @@ public class SnmpOperations {
 //	}
 
 	
-//	untested.
-	public void snmpWalk(OID targetOid) throws Exception{
+
+	public void snmpWalk(Map<OID, Variable> status,OID targetOid) throws Exception{
+		status.clear();
 		
-		String currentOid=targetOid.toString();
-		String rootOid=currentOid;
-		
+	    OID currentOid=new OID(targetOid);
+		String rootOid=currentOid.toString();
 		target.setCommunity(new OctetString(rocommunity));
-		PDU request=new PDU();
-		request.add(new VariableBinding(targetOid));
-		request.setType(PDU.GETNEXT);
 		do {
-			ResponseEvent responseEvent=snmp.send(request, target);
+			PDU request=new PDU();
+			request.setType(PDU.GETNEXT);
+		    request.add(new VariableBinding(currentOid));
+		    ResponseEvent responseEvent=snmp.send(request, target);
 			if(responseEvent!=null&&responseEvent.getResponse()!=null)
 			{
 				PDU response=responseEvent.getResponse();
 				if(response.getErrorIndex()==PDU.noError&&response.getErrorStatus()==PDU.noError){
 					VariableBinding variableBinding=(VariableBinding) response.getVariableBindings().firstElement();
-					currentOid=variableBinding.getOid().toString();
-					if(currentOid.contains(rootOid)){
-						System.out.println(currentOid.toString()+":"+variableBinding.getVariable().toString());
-					}
-					else break;
+					currentOid=variableBinding.getOid();
+					if(currentOid.toString().contains(rootOid)){
+						status.put(currentOid, variableBinding.getVariable());
+					}else break;
 				}else {
 					throw new Exception(response.getErrorStatusText());
 				}
 			}else {
 				throw responseEvent.getError();
 			}
-		} while (currentOid.contains(rootOid));
+		} while (currentOid.toString().contains(rootOid));
 			
 	}
 	
-	public boolean snmpSet(OID targetOid,Variable value) throws Exception{
+	public void snmpSet(OID targetOid,Variable value) throws Exception{
+		
 		target.setCommunity(new OctetString(rwcommunity));
 		
 		PDU request=new PDU();
@@ -94,9 +97,9 @@ public class SnmpOperations {
 				VariableBinding variableBinding=(VariableBinding) response.getVariableBindings().firstElement();
 				Variable newValue=variableBinding.getVariable();
 				if(newValue.equals(value)){
-					return true;
+					return;
 				}else {
-					return false;
+					throw new Exception("Set "+targetOid.toString()+" failure.");
 				}
 			}else {
 				throw new Exception(response.getErrorStatusText());
@@ -105,5 +108,4 @@ public class SnmpOperations {
 			throw responseEvent.getError();
 		}
 	}
-	
 }
