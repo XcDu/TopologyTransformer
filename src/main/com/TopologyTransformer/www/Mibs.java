@@ -3,7 +3,7 @@ package com.TopologyTransformer.www;
 import org.snmp4j.smi.OID;
 
 public final class Mibs {
-	public final OID vtpVlanState=new OID("1.3.6.1.4.1.9.9.46.1.3.1.1.2.1");
+	public final OID vtpVlanState=new OID("1.3.6.1.4.1.9.9.46.1.3.1.1.2");
 	public final OID vtpVlanEditOperation=new OID("1.3.6.1.4.1.9.9.46.1.4.1.1.1");
 	public final OID vtpVlanEditBufferOwner=new OID("1.3.6.1.4.1.9.9.46.1.4.1.1.3");
 	public final OID vtpVlanEditState=new OID("1.3.6.1.4.1.9.9.46.1.4.2.1.2");

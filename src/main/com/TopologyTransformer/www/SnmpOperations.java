@@ -48,13 +48,30 @@ public class SnmpOperations {
 		transport.listen();
 	}
 	
-//	public void snmpGet(){
-//		
-//	}
+	public void snmpGet(OID targetOid,Map<OID, Variable> status) throws Exception{
+		status.clear();
+		
+		target.setCommunity(new OctetString(rocommunity));
+		PDU request=new PDU();
+		request.setType(PDU.GET);
+		request.add(new VariableBinding(targetOid));
+		ResponseEvent responseEvent=snmp.send(request, target);
+		if(responseEvent!=null&&responseEvent.getResponse()!=null){
+			PDU response=responseEvent.getResponse();
+			if(response.getErrorIndex()==PDU.noError&&response.getErrorStatus()==PDU.noError){
+				status.put(targetOid,response.getVariableBindings().firstElement().getVariable());				
+			}
+			else{
+				throw new Exception("Error in response when snmpget: "+targetOid.toString());				
+			}
+		}else{
+			throw new Exception("Error in connection to "+address+" when snmpget");
+		}
+	}
 
 	
 
-	public void snmpWalk(Map<OID, Variable> status,OID targetOid) throws Exception{
+	public void snmpWalk(OID targetOid,Map<OID, Variable> status) throws Exception{
 		status.clear();
 		
 	    OID currentOid=new OID(targetOid);
@@ -75,10 +92,10 @@ public class SnmpOperations {
 						status.put(currentOid, variableBinding.getVariable());
 					}else break;
 				}else {
-					throw new Exception(response.getErrorStatusText());
+					throw new Exception("Error in response when snmpwalk: "+targetOid.toString());
 				}
 			}else {
-				throw responseEvent.getError();
+				throw new Exception("Error in connection to "+address+" when snmpwalk");
 			}
 		} while (currentOid.toString().contains(rootOid));
 			
@@ -99,13 +116,13 @@ public class SnmpOperations {
 				if(newValue.equals(value)){
 					return;
 				}else {
-					throw new Exception("Set "+targetOid.toString()+" failure.");
+					throw new Exception("snmpset "+targetOid.toString()+" failure.");
 				}
 			}else {
-				throw new Exception(response.getErrorStatusText());
+				throw new Exception("Error in response when snmpset: "+targetOid.toString());
 			}
 		}else {
-			throw responseEvent.getError();
+			throw new Exception("Error in connection to "+address+" when snmpset");
 		}
 	}
 }
